@@ -14,12 +14,6 @@ The goal is to:
 
 ---
 
-## Current Utilities
-* `cat` — with support for options like:
-
-  * `-n` / `--number`: Append line number to all output lines.
-  * `-s` / `--squeeze-blank`: Suppress repeated empty output lines.
-
 ## To Build:
 
 Clone the repo:
@@ -38,13 +32,11 @@ make <target>
 Available targets:
 
 * `cat` → builds the `cat` utility
-
-## Usage (cat)
-- This basically works like the `cat` found in GNU coreutils but this one works differently.
+* `echo` → builds the `echo` utility
 
 ## Roadmap
-* [x] Implement `cat`
-* [ ] Add more utilities (`echo`, `head`, `tail`, `ls`, …)
+* [x] Implemented `cat` and `echo`
+* [ ] Add more utilities (`head`, `tail`, `ls`, …)
 
 ## This project is inspired by:
 * **GNU coreutils**, the foundation of UNIX/Linux command line.
