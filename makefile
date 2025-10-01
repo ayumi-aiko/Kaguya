@@ -28,8 +28,12 @@ CAT_OUTPUT = ./local_build/binaries/cat
 ECHO_MAIN = ./src/echo/main.c
 ECHO_OUTPUT = ./local_build/binaries/echo
 
+# cmp target vars:
+CMP_MAIN = ./src/cmp/main.c
+CMP_OUTPUT = ./local_build/binaries/cmp
+
 # dynamic targets, builds everything.
-all: cat echo
+all: cat echo cmp
 
 # targets:
 cat:
@@ -42,7 +46,12 @@ echo:
 	@$(CC) $(CFLAGS) $(ECHO_MAIN) -o $(ECHO_OUTPUT) >$(COMPILER_OUTPUT) 2>&1 && \
 	echo "\e[0;33mmake: Info: Build finished successfully\e[0;37m" || echo "\e[0;31mmake: Error: Compilation failed. Check $(COMPILER_OUTPUT) for details.\e[0;37m";
 
-clean:
-	@rm -f $(CAT_OUTPUT) $(ECHO_OUTPUT) $(COMPILER_OUTPUT)
+cmp:
+	@echo "\e[0;33mmake: Info: Building cmp..\e[0;37m"
+	@$(CC) $(CFLAGS) $(CMP_MAIN) -o $(CMP_OUTPUT) >$(COMPILER_OUTPUT) 2>&1 && \
+	echo "\e[0;33mmake: Info: Build finished successfully\e[0;37m" || echo "\e[0;31mmake: Error: Compilation failed. Check $(COMPILER_OUTPUT) for details.\e[0;37m";
 
-.PHONY: all cat clean echo
+clean:
+	@rm -f $(CAT_OUTPUT) $(ECHO_OUTPUT) $(COMPILER_OUTPUT) $(CMP_OUTPUT)
+
+.PHONY: all cat clean echo cmp

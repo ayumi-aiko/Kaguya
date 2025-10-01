@@ -1,7 +1,7 @@
 ![kaguya-banner](https://github.com/ayumi-aiko/banners/blob/main/kaguya.banner.png?raw=true)
 
 # Kaguya
-A small fun repository which aims to write the popular "GNU" coreutils using C. 
+A small repository which aims to write the CLI utilities using C. 
 
 ## Overview
 
@@ -33,10 +33,8 @@ Available targets:
 
 * `cat` → builds the `cat` utility
 * `echo` → builds the `echo` utility
+* `cmp` → builds the `cmp` utility
 
 ## Roadmap
-* [x] Implemented `cat` and `echo`
+* [x] Implemented `cat`, `echo` and `cmp`
 * [ ] Add more utilities (`head`, `tail`, `ls`, …)
-
-## This project is inspired by:
-* **GNU coreutils**, the foundation of UNIX/Linux command line.
