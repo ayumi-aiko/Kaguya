@@ -40,4 +40,5 @@ Available targets:
 * [ ] Add more utilities (`head`, `tail`, `ls`, …)
 
 ## Contributors
-- @HomuHomu833
+- [Homura](https://github.com/HomuHomu833)
+##### Thanks to everyone who helped me on this project, if you are interested in contribution, just let me know on my [discord](https://discord.gg/GRded35Ak4)!
