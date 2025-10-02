@@ -38,3 +38,6 @@ Available targets:
 ## Roadmap
 * [x] Implemented `cat`, `echo` and `cmp`
 * [ ] Add more utilities (`head`, `tail`, `ls`, …)
+
+## Contributors
+- @HomuHomu833

@@ -15,11 +15,27 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include <stdio.h>
-#include <string.h>
+#include <getopt.h>
+#include <stdbool.h>
 #include <libgen.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 // let's store differing bytes in a str array!
 int arr[] = {0};
+
+// program name:
+char *programName = NULL;
+
+// never used struct that much, but here i'm using this 
+// "class" kinda thing.
+struct option longOptions[] = {
+    {"help", no_argument, 0, 'h'},
+    {"version", no_argument, 0, 'v'},
+    {"print-bytes", required_argument, 0, 'b'},
+    {0,0,0,0}
+};
 
 int stringByteCompare(const char *needle, const char *haystack) {
     size_t endStrIndexOfNeedle = strcspn(needle, "\0");
@@ -49,95 +65,103 @@ int stringByteCompareAndStoreDiffering(const char *needle, const char *haystack,
     return -1;
 }
 
-int main(const int argc, const char *argv[]) {
-    if(argc >= 4 && (strcmp(argv[1], "-b") == 0 || strcmp(argv[1], "--print-bytes") == 0)) {
-        char contentOfOne[1024];
-        char contentOfTwo[1024];
-        FILE *firstFile = fopen(argv[2], "r");
-        FILE *secondFile = fopen(argv[3], "r");
-        if(!firstFile) {
-            printf("Failed to open %s: No such file or directory\n", argv[2]);
-            return -1;
+void printHelp(void) {
+    printf("Usage: %s [OPTION]... [FILE1] [FILE2]\n", programName);
+    printf("Compare two files byte by byte.\n\n");
+    printf("  -b, --print-bytes Print differing bytes\n");
+    printf("  -h, --help        Display this help and exit\n");
+    printf("  -v, --version     Output version information and exit\n");
+}
+
+int main(int argc, char *argv[]) {
+    int byteCount = 0;
+    int diffIndex;
+    int opt;
+    int longindex = 0;
+    bool printBytes = false;
+    programName = basename((char *)argv[0]);
+    char contentOfOne[1024];
+    char contentOfTwo[1024];
+    while((opt = getopt_long(argc, argv, "hvb", longOptions, &longindex)) != -1) {
+        switch(opt) {
+            case 'h':
+                printHelp();
+                return 0;
+            case 'v':
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠓⠶⣤⠀⠀⠀⠀⣠⠶⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠇⠀⢠⡏⠀⠀⢀⡔⠉⠀⢈⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠩⠤⣄⣼⠁⠀⣠⠟⠀⠀⣠⠏⠀⠀⢀⣀⠀⠀⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢀⣀⣀⣀⣀⣀⣀⣀⠀⠀⠀⠁⠀⠀⠣⣤⣀⡼⠃⠀⢀⡴⠋⠈⠳⡄⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⣶⣿⡿⠿⠿⠟⠛⠛⠛⠛⠿⠿⣿⣿⣶⣤⣄⠀⠀⠀⠉⠀⢀⡴⠋⠀⠀⣠⠞⠁⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣾⣿⠿⠋⠉⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠻⢿⣿⣶⣄⠀⠀⠳⣄⠀⣠⠞⢁⡠⢶⡄⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⠿⠋⠀⠀⢀⣴⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢤⡈⠛⢿⣿⣦⡀⠈⠛⢡⠚⠃⠀⠀⢹⡆⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⠟⠁⠀⠀⠀⢀⣾⠃⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⢻⡆⠀⠀⢻⣦⠀⠙⢿⣿⣦⡀⠈⢶⣀⡴⠞⠋⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⣠⣿⡿⠃⠀⠀⠀⠀⢀⣾⡇⢀⡄⠀⢸⡇⠀⠀⠀⠀⠀⠀⣀⠀⢸⣷⡀⠀⠀⠹⣷⡀⠀⠙⢿⣷⡀⠀⠉⠀⠀⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⣰⣿⡟⠀⠀⠀⠀⠀⠀⣾⣿⠃⣼⡇⠀⢸⡇⠀⠀⠀⠀⠀⠀⣿⠀⢸⣿⣷⡀⠀⢀⣾⣿⡤⠐⠊⢻⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⢠⣿⣿⣼⡇⠀⠀⠀⠀⢠⣿⠉⢠⣿⠧⠀⣸⣇⣠⡄⠀⠀⠀⠀⣿⠠⢸⡟⠹⣿⡍⠉⣿⣿⣧⠀⠀⠀⠻⣿⣶⣄⠀⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⢸⣿⣿⡟⠀⠀⠀⠀⠀⣼⡏⢠⡿⣿⣦⣤⣿⡿⣿⡇⠀⠀⠀⢸⡿⠻⣿⣧⣤⣼⣿⡄⢸⡿⣿⡇⠀⠀⢠⣌⠛⢿⣿⣶⣤⣤⣄⡀\n");
+                printf("⠀⠀⠀⣀⣤⣿⣿⠟⣀⠀⠀⠀⠀⠀⣿⢃⣿⠇⢿⣯⣿⣿⣇⣿⠁⠀⠀⠀⣾⡇⢸⣿⠃⠉⠁⠸⣿⣼⡇⢻⡇⠀⠀⠀⢿⣷⣶⣬⣭⣿⣿⣿⠇\n");
+                printf("⣾⣿⣿⣿⣿⣻⣥⣾⡇⠀⠀⠀⠀⠀⣿⣿⠇⠀⠘⠿⠋⠻⠿⠿⠶⠶⠾⠿⠿⠍⢛⣧⣰⠶⢀⣀⣼⣿⣴⡸⣿⠀⠀⠀⠸⣿⣿⣿⠉⠛⠉⠀⠀\n");
+                printf("⠘⠛⠿⠿⢿⣿⠉⣿⠁⠀⠀⠀⠀⢀⣿⡿⣶⣶⣶⣤⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⢀⣭⣶⣿⡿⠟⠋⠉⠀⠀⣿⠀⡀⡀⠀⣿⣿⣿⡆⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⣼⣿⠀⣿⠀⠀⠸⠀⠀⠸⣿⠇⠀⠀⣈⣩⣭⣿⡿⠟⠃⠀⠀⠀⠀⠀⠙⠛⠛⠛⠛⠻⠿⠷⠆⠀⣯⠀⠇⡇⠀⣿⡏⣿⣧⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⢿⣿⡀⣿⡆⠀⠀⠀⠀⠀⣿⠰⠿⠿⠛⠋⠉⠀⠀⢀⣴⣶⣶⣶⣶⣶⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣧⠀⠀⠀⣿⡇⣿⣿⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⢸⣿⡇⢻⣇⠀⠘⣰⡀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠀⠀⠀⠀⢸⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⠀⠀⠀⣿⣧⣿⡿⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠈⣿⣧⢸⣿⡀⠀⡿⣧⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣿⡄⠀⠀⠀⣼⡇⠀⠀⠀⠀⠀⠀⢀⣤⣾⡟⢡⣶⠀⢠⣿⣿⣿⠃⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠹⣿⣿⣿⣷⠀⠇⢹⣷⡸⣿⣶⣦⣄⣀⡀⠀⠀⠀⣿⡇⠀⠀⢠⣿⠁⣀⣀⣠⣤⣶⣾⡿⢿⣿⡇⣼⣿⢀⣿⣿⠿⠏⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠈⠛⠛⣿⣷⣴⠀⢹⣿⣿⣿⡟⠿⠿⣿⣿⣿⣿⣾⣷⣶⣿⣿⣿⣿⡿⠿⠟⠛⠋⠉⠀⢸⣿⣿⣿⣿⣾⣿⠃⠀⠀⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣦⣘⣿⡿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠛⠛⠻⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀\n");
+                printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠻⣿⣿⣿⠈⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n\n");
+                printf("                       kawaiiiii~\n");
+                printf("%s 1.0\n", basename((char *)argv[0]));
+                printf("Copyright (C) 2025 愛子あゆみ\n");
+                printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\n");
+                printf("This is free software: you are free to change and redistribute it.\n");
+                printf("There is NO WARRANTY, to the extent permitted by law.\n\n");
+                printf("Written by Ayumi Aiko\n");
+                return 0;
+            case 'b':
+                printBytes = true;
+            break;
+            default:
+                return 1;
         }
-        if(!secondFile) {
-            fclose(firstFile);
-            printf("Failed to open %s: No such file or directory\n", argv[3]);
-            return -1;
-        }
-        contentOfOne[fread(contentOfOne, 1, sizeof(contentOfOne)-1, firstFile)] = '\0';
-        contentOfTwo[fread(contentOfTwo, 1, sizeof(contentOfTwo)-1, secondFile)] = '\0';
+    }
+    if(optind <= 2) {
+        printHelp();
+        return 1;
+    }
+    FILE *firstFile = fopen(argv[optind], "r");
+    FILE *secondFile = fopen(argv[optind + 1], "r");
+    if(!firstFile) {
+        printf("Failed to open %s: No such file or directory\n", argv[optind]);
+        return -1;
+    }
+    if(!secondFile) {
         fclose(firstFile);
-        fclose(secondFile);
-        int byteCount = 0;
-        // small hack to make the diffIndex output to be same as cmp.
-        int diffIndex = stringByteCompareAndStoreDiffering(contentOfOne, contentOfTwo, &byteCount) + 1;
+        printf("Failed to open %s: No such file or directory\n", argv[optind + 1]);
+        return -1;
+    }
+    contentOfOne[fread(contentOfOne, 1, sizeof(contentOfOne)-1, firstFile)] = '\0';
+    contentOfTwo[fread(contentOfTwo, 1, sizeof(contentOfTwo)-1, secondFile)] = '\0';
+    fclose(firstFile);
+    fclose(secondFile);
+    // adding 1 to diffIndex gives output that is equal to actual cmp.
+    if(printBytes) {
+        diffIndex = stringByteCompareAndStoreDiffering(contentOfOne, contentOfTwo, &byteCount) + 1;
+        if(diffIndex == 0) return 0;
+        int lineNum = 1;
+        for(int i = 0; i < diffIndex - 1; i++) if(contentOfOne[i] == '\n') lineNum++;
+        char buf0[5], buf1[5];
+        if((unsigned char)arr[0] >= 32 && (unsigned char)arr[0] <= 126) snprintf(buf0, sizeof(buf0), "%c", arr[0]);
+        else snprintf(buf0, sizeof(buf0), "%03o", (unsigned char)arr[0]);
+        if((unsigned char)arr[1] >= 32 && (unsigned char)arr[1] <= 126) snprintf(buf1, sizeof(buf1), "%c", arr[1]);
+        else snprintf(buf1, sizeof(buf1), "%03o", (unsigned char)arr[1]);
+        printf("%s %s differ: byte %d, line %d is %s %s\n", argv[optind], argv[optind + 1], diffIndex, lineNum, buf0, buf1);
+    }
+    else {
+        diffIndex = stringByteCompare(contentOfOne, contentOfTwo) + 1;
         if(diffIndex == -1) return 0;
-        printf("%s %s differ: byte %d: '%c' vs '%c'\n", argv[2], argv[3], diffIndex, arr[0], arr[1]);
-        return 1;
+        printf("%s %s differ: byte %d\n", argv[optind], argv[optind + 1], diffIndex);
     }
-    else if(argc >= 3) {
-        char contentOfOne[1024];
-        char contentOfTwo[1024];
-        FILE *firstFile = fopen(argv[1], "r");
-        FILE *secondFile = fopen(argv[2], "r");
-        if(!firstFile) {
-            printf("Failed to open %s: No such file or directory\n", argv[1]);
-            return -1;
-        }
-        if(!secondFile) {
-            fclose(firstFile);
-            printf("Failed to open %s: No such file or directory\n", argv[2]);
-            return -1;
-        }
-        contentOfOne[fread(contentOfOne, 1, sizeof(contentOfOne)-1, firstFile)] = '\0';
-        contentOfTwo[fread(contentOfTwo, 1, sizeof(contentOfTwo)-1, secondFile)] = '\0';
-        fclose(firstFile);
-        fclose(secondFile);
-        // small hack to make the diffIndex output to be same as cmp.
-        int diffIndex = stringByteCompare(contentOfOne, contentOfTwo) + 1;
-        if(diffIndex == -1) return 0;
-        printf("%s %s differ: byte %d\n", argv[1], argv[2], diffIndex);
-        return 1;
-    }
-    else if(strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
-        printf("Usage: %s [OPTION]... [FILE1] [FILE2]\n", basename((char *)argv[0]));
-        printf("Compare two files byte by byte.\n\n");
-        printf("  -b, --print-bytes          print differing bytes\n");
-        printf("  -h, --help        display this help and exit\n");
-        printf("  -v, --version     output version information and exit\n");
-        return 1;
-    }
-    else if(strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0) { 
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠓⠶⣤⠀⠀⠀⠀⣠⠶⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠇⠀⢠⡏⠀⠀⢀⡔⠉⠀⢈⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠩⠤⣄⣼⠁⠀⣠⠟⠀⠀⣠⠏⠀⠀⢀⣀⠀⠀⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢀⣀⣀⣀⣀⣀⣀⣀⠀⠀⠀⠁⠀⠀⠣⣤⣀⡼⠃⠀⢀⡴⠋⠈⠳⡄⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⣶⣿⡿⠿⠿⠟⠛⠛⠛⠛⠿⠿⣿⣿⣶⣤⣄⠀⠀⠀⠉⠀⢀⡴⠋⠀⠀⣠⠞⠁⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣾⣿⠿⠋⠉⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠻⢿⣿⣶⣄⠀⠀⠳⣄⠀⣠⠞⢁⡠⢶⡄⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⠿⠋⠀⠀⢀⣴⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢤⡈⠛⢿⣿⣦⡀⠈⠛⢡⠚⠃⠀⠀⢹⡆⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⠟⠁⠀⠀⠀⢀⣾⠃⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⢻⡆⠀⠀⢻⣦⠀⠙⢿⣿⣦⡀⠈⢶⣀⡴⠞⠋⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⣠⣿⡿⠃⠀⠀⠀⠀⢀⣾⡇⢀⡄⠀⢸⡇⠀⠀⠀⠀⠀⠀⣀⠀⢸⣷⡀⠀⠀⠹⣷⡀⠀⠙⢿⣷⡀⠀⠉⠀⠀⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⣰⣿⡟⠀⠀⠀⠀⠀⠀⣾⣿⠃⣼⡇⠀⢸⡇⠀⠀⠀⠀⠀⠀⣿⠀⢸⣿⣷⡀⠀⢀⣾⣿⡤⠐⠊⢻⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⢠⣿⣿⣼⡇⠀⠀⠀⠀⢠⣿⠉⢠⣿⠧⠀⣸⣇⣠⡄⠀⠀⠀⠀⣿⠠⢸⡟⠹⣿⡍⠉⣿⣿⣧⠀⠀⠀⠻⣿⣶⣄⠀⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⢸⣿⣿⡟⠀⠀⠀⠀⠀⣼⡏⢠⡿⣿⣦⣤⣿⡿⣿⡇⠀⠀⠀⢸⡿⠻⣿⣧⣤⣼⣿⡄⢸⡿⣿⡇⠀⠀⢠⣌⠛⢿⣿⣶⣤⣤⣄⡀\n");
-        printf("⠀⠀⠀⣀⣤⣿⣿⠟⣀⠀⠀⠀⠀⠀⣿⢃⣿⠇⢿⣯⣿⣿⣇⣿⠁⠀⠀⠀⣾⡇⢸⣿⠃⠉⠁⠸⣿⣼⡇⢻⡇⠀⠀⠀⢿⣷⣶⣬⣭⣿⣿⣿⠇\n");
-        printf("⣾⣿⣿⣿⣿⣻⣥⣾⡇⠀⠀⠀⠀⠀⣿⣿⠇⠀⠘⠿⠋⠻⠿⠿⠶⠶⠾⠿⠿⠍⢛⣧⣰⠶⢀⣀⣼⣿⣴⡸⣿⠀⠀⠀⠸⣿⣿⣿⠉⠛⠉⠀⠀\n");
-        printf("⠘⠛⠿⠿⢿⣿⠉⣿⠁⠀⠀⠀⠀⢀⣿⡿⣶⣶⣶⣤⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⢀⣭⣶⣿⡿⠟⠋⠉⠀⠀⣿⠀⡀⡀⠀⣿⣿⣿⡆⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⣼⣿⠀⣿⠀⠀⠸⠀⠀⠸⣿⠇⠀⠀⣈⣩⣭⣿⡿⠟⠃⠀⠀⠀⠀⠀⠙⠛⠛⠛⠛⠻⠿⠷⠆⠀⣯⠀⠇⡇⠀⣿⡏⣿⣧⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⢿⣿⡀⣿⡆⠀⠀⠀⠀⠀⣿⠰⠿⠿⠛⠋⠉⠀⠀⢀⣴⣶⣶⣶⣶⣶⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣧⠀⠀⠀⣿⡇⣿⣿⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⢸⣿⡇⢻⣇⠀⠘⣰⡀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠀⠀⠀⠀⢸⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⠀⠀⠀⣿⣧⣿⡿⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠈⣿⣧⢸⣿⡀⠀⡿⣧⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣿⡄⠀⠀⠀⣼⡇⠀⠀⠀⠀⠀⠀⢀⣤⣾⡟⢡⣶⠀⢠⣿⣿⣿⠃⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠹⣿⣿⣿⣷⠀⠇⢹⣷⡸⣿⣶⣦⣄⣀⡀⠀⠀⠀⣿⡇⠀⠀⢠⣿⠁⣀⣀⣠⣤⣶⣾⡿⢿⣿⡇⣼⣿⢀⣿⣿⠿⠏⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠈⠛⠛⣿⣷⣴⠀⢹⣿⣿⣿⡟⠿⠿⣿⣿⣿⣿⣾⣷⣶⣿⣿⣿⣿⡿⠿⠟⠛⠋⠉⠀⢸⣿⣿⣿⣿⣾⣿⠃⠀⠀⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣦⣘⣿⡿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠛⠛⠻⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀\n");
-        printf("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠻⣿⣿⣿⠈⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n\n");
-        printf("                       kawaiiiii~\n");
-        printf("%s 1.0\n", basename((char *)argv[0]));
-        printf("Copyright (C) 2025 愛子あゆみ\n");
-        printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\n");
-        printf("This is free software: you are free to change and redistribute it.\n");
-        printf("There is NO WARRANTY, to the extent permitted by law.\n\n");
-        printf("Written by Ayumi Aiko\n");
-        return 1;
-    }
+    return 1;
 }
