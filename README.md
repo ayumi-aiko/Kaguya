@@ -11,6 +11,7 @@ The goal is to:
 * Practice low-level C programming more
 * Learn about file descriptors, standard I/O, and system calls
 * Recreate the behavior of GNU tools from scratch
+* Small reminder, some utilities don't have some feature because i'm either lazy to implement or just can't implement it because i lack the skill.
 
 ---
 
@@ -34,10 +35,11 @@ Available targets:
 * `cat` → builds the `cat` utility
 * `echo` → builds the `echo` utility
 * `cmp` → builds the `cmp` utility
+* `ls` → builds the `ls` utility
 
 ## Roadmap
-* [x] Implemented `cat`, `echo` and `cmp`
-* [ ] Add more utilities (`head`, `tail`, `ls`, …)
+* [x] Implemented `cat`, `echo`, `cmp` and `ls`
+* [ ] Add more utilities (`head`, `tail`, …)
 
 ## Contributors
 - [Homura](https://github.com/HomuHomu833)
